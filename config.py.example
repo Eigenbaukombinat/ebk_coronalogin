@@ -1,0 +1,6 @@
+# the location of the .gnupg directory to use
+gnupg_home = '/home/<user>/.gnupg'
+# the work dir for storing the encrypted files
+work_dir = 
+# recipient uid 
+recipient_uid = '<key uid>'
