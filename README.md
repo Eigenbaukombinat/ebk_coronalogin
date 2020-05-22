@@ -35,6 +35,6 @@ bin/python login.py
 
 ## Make it secure
 
-You might want to take measures that users are not able to access or change the code too easily.
+You might want to take measures that users are not able to change the code or modify/access the created encrypted files too easily.
 
 
