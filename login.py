@@ -28,14 +28,23 @@ def login(driver):
         is_mitglied = True
         driver.respondln("Wie ist dein Name?")
         fullname = driver.getinput()
-        phone = "" 
+        phone = street = zipcode = ""
     elif m_or_g == 'g':
         is_mitglied = False
         driver.respondln("Wie ist dein voller Name?")
         fullname = driver.getinput()
+        driver.respondln("Wie ist deine Adresse? (Straße + Hausnummer)")
+        street = driver.getinput()
+        driver.respondln("Wie ist deine Postleitzahl?")
+        zipcode = driver.getinput()
         driver.respondln("Wie ist deine Telefonnummer?")
         phone = driver.getinput()
-    logout_token = coronalogin.save_data(is_mitglied=is_mitglied, fullname=fullname, phone=phone)
+    logout_token = coronalogin.save_data(
+        is_mitglied=is_mitglied,
+        fullname=fullname,
+        street=street,
+        zipcode=zipcode,
+        phone=phone)
     finished = False
     tries = 0
     while not finished:
@@ -64,7 +73,7 @@ def help(driver):
     driver.respondln("      Ankommen, Daten eingeben und einen Logout-Code erhalten.")
     driver.respondln("      Achtung: Merke dir deinen Logout-Code oder schreib ihn dir auf.")
     driver.respondln()
-    driver.respondln("  logout:") 
+    driver.respondln("  logout:")
     driver.respondln("      Deinen Aufenthalt beenden. Du brauchst dafür einen Logout-Code (s.o.)")
     wait_for_anykey(driver)
 
@@ -83,7 +92,7 @@ def logout(driver):
         driver.respondln("Bitte gebe einen Logout-Code ein. (oder 'x' zum abbrechen).")
         token = driver.getinput()
         token_is_valid = coronalogin.verify_token(token)
-        if token == 'x': 
+        if token == 'x':
             driver.respondln("Abbruch.")
             driver.session_end("ok gut")
             return
@@ -123,7 +132,7 @@ class AsciiMaticsDriver(object):
         self.cur_line = 0
         self.width = 80 # xxx handle resize
         self.cur_col = 0
-        self.color = self.screen.COLOUR_GREEN 
+        self.color = self.screen.COLOUR_GREEN
         self.bg = self.screen.A_BOLD
 
     def wait_for_input(self, timeout):
@@ -131,13 +140,13 @@ class AsciiMaticsDriver(object):
 
 
     def session_end(self, msg=""):
-        def spinner(): 
+        def spinner():
             for char in "-\|/" * 5:
                 self.respond(char)
                 self.cur_col -= 1
                 time.sleep(0.1)
         def dissolve():
-            #scan screen 
+            #scan screen
             pos = []
             for y in range(self.screen.height):
                 for x in range(self.screen.width):
@@ -154,7 +163,7 @@ class AsciiMaticsDriver(object):
                     time.sleep(0.01)
                 pos.remove((x,y))
 
-        random.choice((dissolve, spinner))() 
+        random.choice((dissolve, spinner))()
         self.screen.play([PlasmaScene(self.screen, msg)], stop_on_resize=True, repeat=False)
         self.screen.clear()
         self.cur_line = 0
@@ -201,7 +210,7 @@ class AsciiMaticsDriver(object):
                 if self.cur_col == start_col:
                     # at start, ignore
                     continue
-                self.cur_col -= 1 
+                self.cur_col -= 1
                 backspace = True
                 char = " "
                 input_str = input_str[:-1]
@@ -231,7 +240,7 @@ class ConsoleDriver(object):
 
     def respondln(self, text):
         print(text)
-    
+
     def wait_for_input(self, timeout):
         # not supported for now
         return
