@@ -73,8 +73,7 @@ def wait_for_anykey(driver):
     driver.respondln()
     driver.respondln("[[[ Drücke eine Taste um fortzufahren. ]]]")
     driver.wait_for_input(100)
-    # discard key event
-    driver.screen.get_key()
+
 
 def logout(driver):
     cmd_active = True
@@ -134,31 +133,6 @@ class AsciiMaticsDriver(object):
 
 
     def session_end(self, msg=""):
-        def spinner():
-            for char in "-\|/" * 8:
-                self.respond(char)
-                self.cur_col -= 1
-                time.sleep(0.1)
-        def dissolve():
-            #scan screen
-            pos = []
-            for y in range(self.screen.height):
-                for x in range(self.screen.width):
-                    current_char, fg, attr, bg = self.screen.get_from(x, y)
-                    if current_char != ord(" "):
-                        pos.append((x, y))
-            random.shuffle(pos)
-            for x,y in pos:
-                self.cur_line = y
-                self.cur_col = x
-                for c in 'OXx. ':
-                    self.respond(c)
-                    self.cur_col -= 1
-                    time.sleep(0.01)
-                pos.remove((x,y))
-
-        #random.choice((spinner,))()
-        #self.screen.play([PlasmaScene(self.screen, msg)], stop_on_resize=True, repeat=False)
         wait_for_anykey(self)
         self.screen.clear()
         self.cur_line = 0

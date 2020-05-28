@@ -16,6 +16,20 @@ class CoronaLogin(object):
         self.base_path = path
         self.key_id = key_id
         self.gpg = gnupg.GPG(gnupghome=gnupg_home)
+        self.load_logins()
+
+
+    def load_logins(self):
+        logins_path = os.path.join(self.base_path, 'logins.txt')
+        with open(logins_path, 'r') as loginsfile:
+            for token in loginsfile.readlines():
+                self.current_logins.add(token.strip())
+
+    def save_logins(self):
+        logins_path = os.path.join(self.base_path, 'logins.txt')
+        with open(logins_path, 'w') as loginsfile:
+            for token in self.current_logins:
+                loginsfile.write(f'{token}\n')
 
     def _get_day_path(self):
         """return the path to the directory for the current day.
@@ -48,12 +62,14 @@ class CoronaLogin(object):
         output_file = os.path.join(day_path, token)
         res = self.gpg.encrypt(json.dumps(kw), self.key_id, output=output_file)
         self.current_logins.add(token)
+        self.save_logins()
         return str(token)
 
     def save_logout(self, token):
         """Save logout timestamp and remove token from current logged in tokens."""
         timestamp = datetime.datetime.now().isoformat()
-        with open('logouts.txt', 'a') as logoutsfile:
+        logout_path = os.path.join(self.base_path, 'logouts.txt')
+        with open(logout_path, 'a') as logoutsfile:
             logoutsfile.write(f'{token}_{timestamp}\n')
         self.current_logins.remove(token)
 
