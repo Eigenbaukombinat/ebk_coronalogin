@@ -1,3 +1,4 @@
+#!/home/pi/ebk_coronalogin/bin/python
 from asciimatics.renderers import Fire
 from asciimatics.screen import Screen
 from config import gnupg_home, work_dir, recipient_uid
@@ -6,7 +7,7 @@ from plasma import PlasmaScene
 import random
 import sys
 import time
-
+from splash import SPLASH
 
 coronalogin = CoronaLogin(gnupg_home, work_dir, recipient_uid)
 
@@ -49,7 +50,10 @@ def login(driver):
     tries = 0
     while not finished:
         tries += 1
-        driver.respondln(f"Dein Logout-Code lautet: {logout_token}")
+        driver.respondln(f"[[[  Dein Logout-Code lautet: {logout_token}  ]]]")
+        driver.respondln()
+        driver.respondln("Den Code wirst du benötigen wenn du dich wieder abmeldest.")
+        driver.respondln()
         driver.respondln("Bitte schreibe dir den Code jetzt auf, und gebe 'ok' ein, um zu bestätigen dass du dir den Code aufgeschrieben hast.")
         ok = driver.getinput()
         if ok == 'ok':
@@ -63,23 +67,11 @@ def login(driver):
             finished = True
     driver.clear()
 
-def help(driver):
-    driver.respondln("Verfügbare Kommandos:")
-    driver.respondln()
-    driver.respondln("  help:")
-    driver.respondln("      Diesen Hilfetext anzeigen.")
-    driver.respondln()
-    driver.respondln("  login:")
-    driver.respondln("      Ankommen, Daten eingeben und einen Logout-Code erhalten.")
-    driver.respondln("      Achtung: Merke dir deinen Logout-Code oder schreib ihn dir auf.")
-    driver.respondln()
-    driver.respondln("  logout:")
-    driver.respondln("      Deinen Aufenthalt beenden. Du brauchst dafür einen Logout-Code (s.o.)")
-    wait_for_anykey(driver)
 
 def wait_for_anykey(driver):
     driver.respondln()
-    driver.respondln("Drücke eine Taste um fortzufahren.")
+    driver.respondln()
+    driver.respondln("[[[ Drücke eine Taste um fortzufahren. ]]]")
     driver.wait_for_input(100)
     # discard key event
     driver.screen.get_key()
@@ -110,19 +102,21 @@ def logout(driver):
 
 def main(screen):
     driver = AsciiMaticsDriver(screen)
-    inp = ''
-    while inp.strip() != 'quit':
+    key = ''
+    while key != 'q':
         driver.clear()
-        driver.respondln("Hallo, bitte gebe ein Kommando ein. ('help' für Hilfe)")
-        inp = driver.getinput()
-        if inp.strip() == 'help':
-            help(driver)
-        if inp.strip() == 'login':
+        for spl in SPLASH.splitlines():
+            driver.respondln(spl)
+        if key == 'a':
             login(driver)
-        elif inp.strip() == 'logout':
+        elif key == 'x':
             logout(driver)
-        elif inp.strip() == 'fire':
-            driver.session_end("YEAH")
+        driver.wait_for_input(100)
+        c = driver.screen.get_key()
+        try:
+            key = chr(c)
+        except ValueError:
+            key = ''
 
 
 class AsciiMaticsDriver(object):
@@ -130,7 +124,7 @@ class AsciiMaticsDriver(object):
     def __init__(self, screen):
         self.screen = screen
         self.cur_line = 0
-        self.width = 80 # xxx handle resize
+        self.width = 64 #xxx handle resize
         self.cur_col = 0
         self.color = self.screen.COLOUR_GREEN
         self.bg = self.screen.A_BOLD
@@ -141,7 +135,7 @@ class AsciiMaticsDriver(object):
 
     def session_end(self, msg=""):
         def spinner():
-            for char in "-\|/" * 5:
+            for char in "-\|/" * 8:
                 self.respond(char)
                 self.cur_col -= 1
                 time.sleep(0.1)
@@ -163,8 +157,9 @@ class AsciiMaticsDriver(object):
                     time.sleep(0.01)
                 pos.remove((x,y))
 
-        random.choice((dissolve, spinner))()
-        self.screen.play([PlasmaScene(self.screen, msg)], stop_on_resize=True, repeat=False)
+        #random.choice((spinner,))()
+        #self.screen.play([PlasmaScene(self.screen, msg)], stop_on_resize=True, repeat=False)
+        wait_for_anykey(self)
         self.screen.clear()
         self.cur_line = 0
         self.cur_col = 0
@@ -176,7 +171,7 @@ class AsciiMaticsDriver(object):
             self.cur_line += 1
             self.cur_col = 0
             return
-        n = 80
+        n = 64 
         lines = [text[i:i+n] for i in range(0, len(text), n)]
         for line in lines:
             self.screen.print_at(line, self.cur_col, self.cur_line, self.color, self.bg)
