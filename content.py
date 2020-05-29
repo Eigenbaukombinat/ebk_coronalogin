@@ -21,8 +21,19 @@ SPLASH="""
 
 
        [[[  Drücke die Taste x, um dich abzumelden  ]]]
+
 """  
 
+
+SERVICE = """
+
+      servicemenu
+      
+      h - runterfahren
+      q - zurück ins hauptmenü
+
+
+"""
 
 
 coronalogin = CoronaLogin(gnupg_home, work_dir, recipient_uid)
@@ -33,8 +44,22 @@ class SplashScreen(BaseScreen):
         content = SPLASH
         _outs = (
                 ('a', 'login'),
-                ('x', 'logout'),)
+                ('x', 'logout'),
+                ('s', 'service'),)
 
+class ServiceMenu(BaseScreen):
+    content = SERVICE
+    _outs = (('h', 'shutdown'),
+            ('q', 'index'))
+
+
+    
+class ShutdownScreen(BaseScreen):
+    content = "Herunterfahren..."
+    
+    def listen(self):
+        os.system("poweroff")
+   
 
 class LoginScreen(BaseScreen):
     def render(self):
@@ -128,5 +153,6 @@ class LogoutScreen(SplashScreen):
 
 screens = dict(
         index=SplashScreen,
+        service=ServiceMenu,
         login=LoginScreen,
         logout=LogoutScreen,)
