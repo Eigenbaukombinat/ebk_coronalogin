@@ -1,6 +1,14 @@
+# set this to your terminal screen width
+screen_with = 64
 # the location of the .gnupg directory to use
 gnupg_home = '/home/<user>/.gnupg'
 # the work dir for storing the encrypted files
 work_dir = 
 # recipient uid 
 recipient_uid = '<key uid>'
+
+# import your set of screens
+from <yourmodule> import screens
+
+# or just use the eigenbaukombinat stuff
+from content import screens

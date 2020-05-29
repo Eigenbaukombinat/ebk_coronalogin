@@ -1,0 +1,5 @@
+# import your set of screens
+# from <yourmodule> import screens
+
+# or just use the eigenbaukombinat stuff
+from content import screens

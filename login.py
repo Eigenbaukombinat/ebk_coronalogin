@@ -1,129 +1,30 @@
-#!/home/pi/ebk_coronalogin/bin/python
-from asciimatics.renderers import Fire
 from asciimatics.screen import Screen
-from config import gnupg_home, work_dir, recipient_uid
-from coronalogin import CoronaLogin
-from plasma import PlasmaScene
+from config import screen_width
+from content_config import screens
 import random
 import sys
 import time
-from splash import SPLASH
-
-coronalogin = CoronaLogin(gnupg_home, work_dir, recipient_uid)
 
 
-def login(driver):
-    driver.clear()
-    driver.respondln("Willkommen im Eigenbaukombinat.")
-    m_or_g = ''
-    tries = 0
-    while m_or_g not in ('m', 'g'):
-        tries += 1
-        driver.respondln("Bist du Mitglied (m) oder Gast (g)?")
-        m_or_g = driver.getinput().strip().lower()
-        if tries >= 3:
-            driver.respondln(f"Zu viele Fehlversuche. Gehen wir also einfach mal von Gast aus.")
-            m_or_g = 'g'
-            wait_for_anykey(driver)
-    if m_or_g == 'm':
-        is_mitglied = True
-        driver.respondln("Wie ist dein Name?")
-        fullname = driver.getinput()
-        phone = street = zipcode = ""
-    elif m_or_g == 'g':
-        is_mitglied = False
-        driver.respondln("Wie ist dein voller Name?")
-        fullname = driver.getinput()
-        driver.respondln("Wie ist deine Adresse? (Straße + Hausnummer)")
-        street = driver.getinput()
-        driver.respondln("Wie ist deine Postleitzahl?")
-        zipcode = driver.getinput()
-        driver.respondln("Wie ist deine Telefonnummer?")
-        phone = driver.getinput()
-    logout_token = coronalogin.save_data(
-        is_mitglied=is_mitglied,
-        fullname=fullname,
-        street=street,
-        zipcode=zipcode,
-        phone=phone)
-    finished = False
-    tries = 0
-    while not finished:
-        tries += 1
-        driver.respondln(f"[[[  Dein Logout-Code lautet: {logout_token}  ]]]")
-        driver.respondln()
-        driver.respondln("Den Code wirst du benötigen wenn du dich wieder abmeldest.")
-        driver.respondln()
-        driver.respondln("Bitte schreibe dir den Code jetzt auf, und gebe 'ok' ein, um zu bestätigen dass du dir den Code aufgeschrieben hast.")
-        ok = driver.getinput()
-        if ok == 'ok':
-            driver.respondln("Danke und viel Spaß im Eigenbaukombinat!")
-            driver.session_end("Have fun")
-            finished = True
-            continue
-        if tries >= 3:
-            driver.respondln(f"Zu viele Fehlversuche. Hoffentlich hast du dir den Code ({logout_token}) gemerkt!")
-            driver.session_end(logout_token)
-            finished = True
-    driver.clear()
 
-
-def wait_for_anykey(driver):
-    driver.respondln()
-    driver.respondln()
-    driver.respondln("[[[ Drücke eine Taste um fortzufahren. ]]]")
-    driver.wait_for_input(100)
-
-
-def logout(driver):
-    cmd_active = True
-    driver.clear()
-    fails = 0
-    while cmd_active:
-        driver.respondln("Bitte gebe einen Logout-Code ein. (oder 'x' zum abbrechen).")
-        token = driver.getinput()
-        token_is_valid = coronalogin.verify_token(token)
-        if token == 'x':
-            driver.respondln("Abbruch.")
-            driver.session_end("ok gut")
-            return
-        elif token_is_valid:
-            coronalogin.save_logout(token)
-            driver.respondln("Danke dass du da warst. Bleib gesund!")
-            driver.session_end("KTHXBYE")
-            return
-        fails += 1
-        if fails > 3:
-            driver.respondln("Zu viele Fehlversuche. Abbruch.")
-            driver.session_end("FAIL")
-            return
-        driver.respondln("Fehlerhafter Code.")
 
 def main(screen):
-    driver = AsciiMaticsDriver(screen)
-    key = ''
-    while key != 'q':
-        driver.clear()
-        for spl in SPLASH.splitlines():
-            driver.respondln(spl)
-        if key == 'a':
-            login(driver)
-        elif key == 'x':
-            logout(driver)
-        driver.wait_for_input(100)
-        c = driver.screen.get_key()
-        try:
-            key = chr(c)
-        except ValueError:
-            key = ''
+    driver = AsciiMaticsDriver(screen, screen_width)
+    cur = 'index'
+    while True:
+        scr = screens[cur](driver)
+        cur = scr.render()
+        cur = scr.listen()
 
 
 class AsciiMaticsDriver(object):
-
-    def __init__(self, screen):
+    """Abstraction for all non-content related
+    screen handling like printing and getting
+    input."""
+    def __init__(self, screen, width):
         self.screen = screen
         self.cur_line = 0
-        self.width = 64 #xxx handle resize
+        self.width = width #xxx handle resize
         self.cur_col = 0
         self.color = self.screen.COLOUR_GREEN
         self.bg = self.screen.A_BOLD
@@ -131,9 +32,14 @@ class AsciiMaticsDriver(object):
     def wait_for_input(self, timeout):
         self.screen.wait_for_input(timeout)
 
-
+    def wait_for_anykey(self):
+        self.respondln()
+        self.respondln()
+        self.respondln("[[[ Drücke eine Taste um fortzufahren. ]]]")
+        self.wait_for_input(100)
+    
     def session_end(self, msg=""):
-        wait_for_anykey(self)
+        self.wait_for_anykey()
         self.screen.clear()
         self.cur_line = 0
         self.cur_col = 0
@@ -145,7 +51,7 @@ class AsciiMaticsDriver(object):
             self.cur_line += 1
             self.cur_col = 0
             return
-        n = 64 
+        n = self.width 
         lines = [text[i:i+n] for i in range(0, len(text), n)]
         for line in lines:
             self.screen.print_at(line, self.cur_col, self.cur_line, self.color, self.bg)
@@ -204,32 +110,6 @@ class AsciiMaticsDriver(object):
         self.cur_line = 0
         return
 
-
-class ConsoleDriver(object):
-
-    def respondln(self, text):
-        print(text)
-
-    def wait_for_input(self, timeout):
-        # not supported for now
-        return
-
-    def session_end(self, msg=""):
-        print(msg)
-        return
-
-    def respond(self, text):
-        sys.stdout.write(GREEN + REVERSE)
-        print(text, end='')
-
-
-    def getinput(self):
-        self.respond("> ")
-        return input()
-
-    def clear(self):
-        print(chr(27) + "[2J")
-        sys.stdout.write(GREEN + REVERSE)
 
 
 if __name__ == '__main__':
