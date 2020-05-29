@@ -72,6 +72,7 @@ class CoronaLogin(object):
         with open(logout_path, 'a') as logoutsfile:
             logoutsfile.write(f'{token}_{timestamp}\n')
         self.current_logins.remove(token)
+        self.save_logins()
 
     def verify_token(self, token):
         """Check if the given token is currently logged in."""
