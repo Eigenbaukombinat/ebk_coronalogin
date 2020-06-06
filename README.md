@@ -27,6 +27,19 @@ cp config.py.example config.py
 <editor> config.py
 ```
 
+## Content
+
+You have to configure the content you want to use in another python
+module.
+
+```
+cp content_config.py.example content_config.py
+<editor> content_config.py
+```
+
+The provided example shows how to import your content.
+
+
 ## Run
 
 ```
