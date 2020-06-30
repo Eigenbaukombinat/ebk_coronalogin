@@ -159,17 +159,17 @@ class LogoutScreen(SplashScreen):
             if token == 'x':
                 self.driver.respondln("Abbruch.")
                 self.driver.session_end("ok gut")
-                return
+                return 'index'
             elif token_is_valid:
                 coronalogin.save_logout(token)
                 self.driver.respondln("Danke dass du da warst. Bleib gesund!")
                 self.driver.session_end("KTHXBYE")
-                return
+                return 'index'
             fails += 1
             if fails > 3:
                 self.driver.respondln("Zu viele Fehlversuche. Abbruch.")
                 self.driver.session_end("FAIL")
-                return
+                return 'index'
             self.driver.respondln("Fehlerhafter Code.")
         return 'index'
 
