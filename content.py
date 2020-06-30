@@ -1,6 +1,7 @@
 from coronalogin import CoronaLogin
+import os
 from config import gnupg_home, work_dir, recipient_uid
-from base import BaseScreen
+from base import BaseScreen, ANYKEY
 
 SPLASH="""
            HERZLICH WILLKOMMEN IM EIGENBAUKOMBINAT
@@ -16,9 +17,7 @@ SPLASH="""
   Im Falle einer Abfrage durch das Gesundheitsamt, kann der
   Vorstand die Daten selektiv entschlüsseln und übermitteln.
 
-
        [[[  Drücke die Taste a, um dich anzumelden  ]]]
-
 
        [[[  Drücke die Taste x, um dich abzumelden  ]]]
 
@@ -45,8 +44,6 @@ LOGIN="""
 
 
 LOGOUT = """"""
-
-
 
 
 SERVICE = """
@@ -82,12 +79,24 @@ class ShutdownScreen(BaseScreen):
     index_content = "Herunterfahren..."
 
     def listen(self):
-        os.system("poweroff")
+        os.system("/sbin/poweroff")
+
+
+class PrintScreen(BaseScreen):
+    index_content = ""
+
+    def listen(self):
+        logout_token = self.prev_screen.logout_token
+        self.driver.respondln("Logout-Token wird gedruckt... ")
+        os.system(f"./print.sh {logout_token}")
+        self.driver.respondln("Drucken abgeschlossen.")
+        self.driver.respondln("")
+        return 'index'
 
 
 class LoginScreen(BaseScreen):
     _outs = (('d', 'print'),
-             (base.ANYKEY, 'index'),)
+             (ANYKEY, 'index'),)
     index_content = LOGIN
 
     def handle_input(self):
@@ -123,13 +132,13 @@ class LoginScreen(BaseScreen):
             street=street,
             zipcode=zipcode,
             phone=phone)
+        self.logout_token = logout_token
         self.driver.respondln(f"[[[  Dein Logout-Code lautet: {logout_token}  ]]]")
         self.driver.respondln()
         self.driver.respondln("Den Code wirst du benötigen wenn du dich wieder abmeldest.")
         self.driver.respondln()
         self.driver.respondln("Du kannst jetzt [d] drücken, um den Code auszudrucken.")
-        self.driver.respondln("oder eine beliebige andere Taste, wenn du dir den Code")
-        self.driver.respondln("andersweitig gemerkt hast.")
+        self.driver.wait_for_anykey()
         return self.listen()
 
 
@@ -164,6 +173,8 @@ class LogoutScreen(SplashScreen):
 
 screens = dict(
         index=SplashScreen,
+        shutdown=ShutdownScreen,
+        print=PrintScreen,
         service=ServiceMenu,
         login=LoginScreen,
         logout=LogoutScreen,)

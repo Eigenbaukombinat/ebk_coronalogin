@@ -11,8 +11,11 @@ import time
 def main(screen):
     driver = AsciiMaticsDriver(screen, screen_width)
     cur = 'index'
+    scr = None
     while True:
+        prev_screen = scr
         scr = screens[cur](driver)
+        scr.prev_screen = prev_screen
         cur = scr.render()
         cur = scr.handle_input()
 
