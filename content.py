@@ -1,4 +1,5 @@
 from coronalogin import CoronaLogin
+import os
 from config import gnupg_home, work_dir, recipient_uid
 from base import BaseScreen
 
@@ -16,13 +17,13 @@ SPLASH="""
   Im Falle einer Abfrage durch das Gesundheitsamt, kann der
   Vorstand die Daten selektiv entschlüsseln und übermitteln.
 
-
        [[[  Drücke die Taste a, um dich anzumelden  ]]]
-
 
        [[[  Drücke die Taste x, um dich abzumelden  ]]]
 
-"""  
+
+------------------[[[ Servicemenü: s ]]]---------------------
+""" 
 
 
 SERVICE = """
@@ -58,8 +59,8 @@ class ShutdownScreen(BaseScreen):
     content = "Herunterfahren..."
     
     def listen(self):
-        os.system("poweroff")
-   
+        os.system("/sbin/poweroff")
+ 
 
 class LoginScreen(BaseScreen):
     def render(self):
@@ -74,7 +75,7 @@ class LoginScreen(BaseScreen):
             if tries >= 3:
                 self.driver.respondln(f"Zu viele Fehlversuche. Gehen wir also einfach mal von Gast aus.")
                 m_or_g = 'g'
-                self.driver.wait_for_anykey(self.driver)
+                self.driver.wait_for_anykey()
         if m_or_g == 'm':
             is_mitglied = True
             self.driver.respondln("Wie ist dein Name?")
@@ -96,25 +97,15 @@ class LoginScreen(BaseScreen):
             street=street,
             zipcode=zipcode,
             phone=phone)
-        finished = False
-        tries = 0
-        while not finished:
-            tries += 1
-            self.driver.respondln(f"[[[  Dein Logout-Code lautet: {logout_token}  ]]]")
-            self.driver.respondln()
-            self.driver.respondln("Den Code wirst du benötigen wenn du dich wieder abmeldest.")
-            self.driver.respondln()
-            self.driver.respondln("Bitte schreibe dir den Code jetzt auf, und gebe 'ok' ein, um zu bestätigen dass du dir den Code aufgeschrieben hast.")
-            ok = self.driver.getinput()
-            if ok == 'ok':
-                self.driver.respondln("Danke und viel Spaß im Eigenbaukombinat!")
-                self.driver.session_end("Have fun")
-                finished = True
-                continue
-            if tries >= 3:
-                self.driver.respondln(f"Zu viele Fehlversuche. Hoffentlich hast du dir den Code ({logout_token}) gemerkt!")
-                self.driver.session_end(logout_token)
-                finished = True
+        self.driver.respondln("Logout-Token wird gedruckt... ")
+        os.system(f"/home/coronalogin/ebk_coronalogin/print.sh {logout_token}")
+        self.driver.respondln("Drucken abgeschlossen.")
+        self.driver.respondln("")
+        self.driver.respondln(f"[[[  Dein Logout-Code lautet: {logout_token}  ]]]")
+        self.driver.respondln()
+        self.driver.respondln("Den Code wirst du benötigen wenn du dich wieder abmeldest.")
+        self.driver.respondln()
+        self.driver.wait_for_anykey()
         self.driver.clear()
 
     def listen(self):
@@ -153,6 +144,7 @@ class LogoutScreen(SplashScreen):
 
 screens = dict(
         index=SplashScreen,
+        shutdown=ShutdownScreen,
         service=ServiceMenu,
         login=LoginScreen,
         logout=LogoutScreen,)
