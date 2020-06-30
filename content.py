@@ -9,8 +9,8 @@ SPLASH="""
 
   Aufgrund der 6. Coronaverordnung des Landes Sachsen-Anhalt
   sind wir verpflichtet, Anwesenheitslisten zu führen. Damit
-  die Daten nicht frei herumliegen, kannst du dich hier am 
-  Computer eintragen. Die Daten werden verschlüsselt 
+  die Daten nicht frei herumliegen, kannst du dich hier am
+  Computer eintragen. Die Daten werden verschlüsselt
   gespeichert und nach 4 Wochen gelöscht.
 
   Im Falle einer Abfrage durch das Gesundheitsamt, kann der
@@ -22,13 +22,37 @@ SPLASH="""
 
        [[[  Drücke die Taste x, um dich abzumelden  ]]]
 
-"""  
+                                         [ servicemenu: s ]"""
+
+
+LOGIN="""
+
+                                                 __
+         _ _ _ _ _ _ _                          |  |
+        | | | |_| | | |_ ___ _____ _____ ___ ___|  |
+        | | | | | | | '_| . |     |     | -_|   |__|
+        |_____|_|_|_|_,_|___|_|_|_|_|_|_|___|_|_|__|
+
+
+         Mitglieder:    Bitte die Mitgliedskarte an den
+                        Leser halten oder die Taste
+                        <<< m >>> drücken.
+
+              Gäste:    Bitte die Taste <<< g >>> drücken.
+
+
+"""
+
+
+LOGOUT = """"""
+
+
 
 
 SERVICE = """
 
       servicemenu
-      
+
       h - runterfahren
       q - zurück ins hauptmenü
 
@@ -41,40 +65,38 @@ coronalogin = CoronaLogin(gnupg_home, work_dir, recipient_uid)
 
 
 class SplashScreen(BaseScreen):
-        content = SPLASH
-        _outs = (
-                ('a', 'login'),
-                ('x', 'logout'),
-                ('s', 'service'),)
+    index_content = SPLASH
+    _outs = (
+            ('a', 'login'),
+            ('x', 'logout'),
+            ('s', 'service'),)
+
 
 class ServiceMenu(BaseScreen):
-    content = SERVICE
+    index_content = SERVICE
     _outs = (('h', 'shutdown'),
             ('q', 'index'))
 
 
-    
 class ShutdownScreen(BaseScreen):
-    content = "Herunterfahren..."
-    
+    index_content = "Herunterfahren..."
+
     def listen(self):
         os.system("poweroff")
-   
+
 
 class LoginScreen(BaseScreen):
-    def render(self):
-        self.driver.clear()
-        self.driver.respondln("Willkommen im Eigenbaukombinat.")
+    _outs = (('d', 'print'),
+             (base.ANYKEY, 'index'),)
+    index_content = LOGIN
+
+    def handle_input(self):
         m_or_g = ''
-        tries = 0
         while m_or_g not in ('m', 'g'):
-            tries += 1
-            self.driver.respondln("Bist du Mitglied (m) oder Gast (g)?")
-            m_or_g = self.driver.getinput().strip().lower()
-            if tries >= 3:
-                self.driver.respondln(f"Zu viele Fehlversuche. Gehen wir also einfach mal von Gast aus.")
-                m_or_g = 'g'
-                self.driver.wait_for_anykey(self.driver)
+            m_or_g = self.get_key()
+            if len(m_or_g) > 5:
+                break
+        self.driver.clear()
         if m_or_g == 'm':
             is_mitglied = True
             self.driver.respondln("Wie ist dein Name?")
@@ -90,39 +112,31 @@ class LoginScreen(BaseScreen):
             zipcode = self.driver.getinput()
             self.driver.respondln("Wie ist deine Telefonnummer?")
             phone = self.driver.getinput()
+        elif len(m_or_g) > 1:
+            # membercard scanned
+            is_mitglied = True
+            fullname = m_or_g
+            phone = street = zipcode = ""
         logout_token = coronalogin.save_data(
             is_mitglied=is_mitglied,
             fullname=fullname,
             street=street,
             zipcode=zipcode,
             phone=phone)
-        finished = False
-        tries = 0
-        while not finished:
-            tries += 1
-            self.driver.respondln(f"[[[  Dein Logout-Code lautet: {logout_token}  ]]]")
-            self.driver.respondln()
-            self.driver.respondln("Den Code wirst du benötigen wenn du dich wieder abmeldest.")
-            self.driver.respondln()
-            self.driver.respondln("Bitte schreibe dir den Code jetzt auf, und gebe 'ok' ein, um zu bestätigen dass du dir den Code aufgeschrieben hast.")
-            ok = self.driver.getinput()
-            if ok == 'ok':
-                self.driver.respondln("Danke und viel Spaß im Eigenbaukombinat!")
-                self.driver.session_end("Have fun")
-                finished = True
-                continue
-            if tries >= 3:
-                self.driver.respondln(f"Zu viele Fehlversuche. Hoffentlich hast du dir den Code ({logout_token}) gemerkt!")
-                self.driver.session_end(logout_token)
-                finished = True
-        self.driver.clear()
+        self.driver.respondln(f"[[[  Dein Logout-Code lautet: {logout_token}  ]]]")
+        self.driver.respondln()
+        self.driver.respondln("Den Code wirst du benötigen wenn du dich wieder abmeldest.")
+        self.driver.respondln()
+        self.driver.respondln("Du kannst jetzt [d] drücken, um den Code auszudrucken.")
+        self.driver.respondln("oder eine beliebige andere Taste, wenn du dir den Code")
+        self.driver.respondln("andersweitig gemerkt hast.")
+        return self.listen()
 
-    def listen(self):
-        return 'index'
 
-    
 class LogoutScreen(SplashScreen):
-    def render(self):
+    index_content = LOGOUT
+
+    def handle_input(self):
         cmd_active = True
         self.driver.clear()
         fails = 0
@@ -145,9 +159,6 @@ class LogoutScreen(SplashScreen):
                 self.driver.session_end("FAIL")
                 return
             self.driver.respondln("Fehlerhafter Code.")
-
-
-    def listen(self):
         return 'index'
 
 

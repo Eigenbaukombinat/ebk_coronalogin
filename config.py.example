@@ -1,5 +1,5 @@
 # set this to your terminal screen width
-screen_with = 64
+screen_width = 64
 # the location of the .gnupg directory to use
 gnupg_home = '/home/<user>/.gnupg'
 # the work dir for storing the encrypted files

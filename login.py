@@ -14,7 +14,7 @@ def main(screen):
     while True:
         scr = screens[cur](driver)
         cur = scr.render()
-        cur = scr.listen()
+        cur = scr.handle_input()
 
 
 class AsciiMaticsDriver(object):
@@ -37,7 +37,7 @@ class AsciiMaticsDriver(object):
         self.respondln()
         self.respondln("[[[ Drücke eine Taste um fortzufahren. ]]]")
         self.wait_for_input(100)
-    
+
     def session_end(self, msg=""):
         self.wait_for_anykey()
         self.screen.clear()
@@ -51,7 +51,7 @@ class AsciiMaticsDriver(object):
             self.cur_line += 1
             self.cur_col = 0
             return
-        n = self.width 
+        n = self.width
         lines = [text[i:i+n] for i in range(0, len(text), n)]
         for line in lines:
             self.screen.print_at(line, self.cur_col, self.cur_line, self.color, self.bg)
