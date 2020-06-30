@@ -133,12 +133,15 @@ class LoginScreen(BaseScreen):
             zipcode=zipcode,
             phone=phone)
         self.logout_token = logout_token
+        self.driver.respondln()
         self.driver.respondln(f"[[[  Dein Logout-Code lautet: {logout_token}  ]]]")
         self.driver.respondln()
         self.driver.respondln("Den Code wirst du benötigen wenn du dich wieder abmeldest.")
         self.driver.respondln()
         self.driver.respondln("Du kannst jetzt [d] drücken, um den Code auszudrucken.")
-        self.driver.wait_for_anykey()
+        self.driver.respondln()
+        self.driver.respondln("Oder spare Papier und merke dir den Code anderweitig.")
+        self.driver.respondln("(Drücke dann eine beliebige Taste um zu beenden.)")
         return self.listen()
 
 

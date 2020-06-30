@@ -44,7 +44,7 @@ class BaseScreen(object):
                 key = self.get_key()
                 if key in self.outs.keys():
                     return self.outs[key]
-                if ANYKEY in self.outs.keys():
+                if key != '' and ANYKEY in self.outs.keys():
                     return self.outs[ANYKEY]
 
 
