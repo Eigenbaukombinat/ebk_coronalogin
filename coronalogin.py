@@ -49,7 +49,7 @@ class CoronaLogin(object):
         files = len(os.listdir(self._get_day_path()))
         d = datetime.date.today().day
         m = datetime.date.today().month
-        hashids = Hashids()
+        hashids = Hashids(alphabet='abcdefghkpqrstwxyz')
         id = hashids.encode(m, d, files)
         return id
 
