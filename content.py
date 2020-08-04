@@ -8,7 +8,7 @@ SPLASH="""
 
               -- Sars-CoV-2 Anwesenheitsliste --
 
-  Aufgrund der 6. Coronaverordnung des Landes Sachsen-Anhalt
+  Aufgrund der 7. Coronaverordnung des Landes Sachsen-Anhalt
   sind wir verpflichtet, Anwesenheitslisten zu führen. Damit
   die Daten nicht frei herumliegen, kannst du dich hier am
   Computer eintragen. Die Daten werden verschlüsselt
