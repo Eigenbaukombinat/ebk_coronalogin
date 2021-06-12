@@ -8,8 +8,7 @@ implemented as a cli application
 ```
 git clone https://github.com/Eigenbaukombinat/ebk_coronalogin.git
 cd ebk_coronalogin
-python3.8 -m venv .
-bin/pip install -r requirements.txt
+make
 ```
 
 ## Prepare
