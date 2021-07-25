@@ -1,16 +1,17 @@
 from coronalogin import CoronaLogin
+import datetime
 import os
 from config import gnupg_home, work_dir, recipient_uid
 from base import BaseScreen, ANYKEY
 
 SPLASH="""
            HERZLICH WILLKOMMEN IM EIGENBAUKOMBINAT
+                     {}
+                 -- Anwesenheitsliste --
 
-              -- Sars-CoV-2 Anwesenheitsliste --
-
-  Aufgrund der 7. Coronaverordnung des Landes Sachsen-Anhalt
-  sind wir verpflichtet, Anwesenheitslisten zu führen. Damit
-  die Daten nicht frei herumliegen, kannst du dich hier am
+  Aufgrund der aktuell geltenden Corona-Regeln sind wir 
+  verpflichtet, Anwesenheitslisten zu führen. Damit die 
+  Daten nicht frei herumliegen, kannst du dich hier am
   Computer eintragen. Die Daten werden verschlüsselt
   gespeichert und nach 4 Wochen gelöscht.
 
@@ -63,10 +64,14 @@ coronalogin = CoronaLogin(gnupg_home, work_dir, recipient_uid)
 
 class SplashScreen(BaseScreen):
     index_content = SPLASH
+    re_render = True
     _outs = (
             ('a', 'login'),
             ('x', 'logout'),
             ('s', 'service'),)
+
+    def variables(self):
+        return (datetime.datetime.now().strftime('%d.%m.%Y %H:%M'),)
 
 
 class ServiceMenu(BaseScreen):

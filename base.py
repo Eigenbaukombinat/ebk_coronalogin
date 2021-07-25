@@ -5,6 +5,7 @@ ANYKEY = '_any_key_'
 class BaseScreen(object):
         _outs = tuple()
         index_content = ''
+        re_render = False
 
         def __init__(self, driver):
             self.driver = driver
@@ -13,13 +14,17 @@ class BaseScreen(object):
         def outs(self):
             return dict(self._outs)
 
+        def variables(self):
+            return tuple()
+
         def render(self, name='index'):
             self.driver.clear()
             if name == 'index':
                 content = self.index_content
             else:
                 content = self.content[name]
-            for spl in content.splitlines():
+            output = content.format(*self.variables())
+            for spl in output.splitlines():
                     self.driver.respondln(spl)
 
         def handle_input(self):
@@ -40,7 +45,13 @@ class BaseScreen(object):
                 out += key
 
         def listen(self):
+            count = 0
             while True:
+                if self.re_render:
+                    count += 1
+                    if count == 30:
+                        self.render()
+                        count = 0
                 key = self.get_key()
                 if key in self.outs.keys():
                     return self.outs[key]
