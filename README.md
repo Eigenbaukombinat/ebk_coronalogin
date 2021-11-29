@@ -49,4 +49,26 @@ bin/python login.py
 
 You might want to take measures that users are not able to change the code or modify/access the created encrypted files too easily.
 
+## Decrypt data for the Gesundheitsamt
 
+The used script requires that you have the private key in your gpg keychain.
+
+First, you have to checkout this code.
+
+```
+git clone https://github.com/Eigenbaukombinat/ebk_coronalogin.git
+cd ebk_coronalogin
+```
+
+Copy the directory containing the data of the day you want to decrypt and the `logouts.txt` file into your checkout and call the `get_day_data.py` script from the day-directory.  
+
+```
+cp -r /storage_with_workdir/yyyy-mm-dd .
+cp /storage_with_workdir/logouts.txt .
+cd yyyy-mm-dd/
+../get_day_data.py
+```
+
+The Script will tell you when its finished. Now import the generated csv file into your spreadsheet. When done, press "Enter" to delete the csv with decrypted data.
+
+Repeat if you need more days. As a last step you have to manually fill in missing contact data for logins of members in your spreadsheet.
