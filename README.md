@@ -49,6 +49,9 @@ bin/python login.py
 
 You might want to take measures that users are not able to change the code or modify/access the created encrypted files too easily.
 
+Also store your private key securely, but in a way that you can find it in case you need it.
+
+
 ## Decrypt data for the Gesundheitsamt
 
 The used script requires that you have the private key in your gpg keychain.
