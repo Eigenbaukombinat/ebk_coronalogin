@@ -1,5 +1,5 @@
 asciimatics==1.11.0
-future==0.18.2
+future==0.18.3
 hashids==1.2.0
 Pillow==8.3.2
 pyfiglet==0.8.post1
